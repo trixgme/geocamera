@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "esbuild src/main.ts --bundle --outfile=public/js/app.js --sourcemap --watch --servedir=public",
+    "dev": "npm run build && node dev-server.mjs",
+    "dev:watch": "esbuild src/main.ts --bundle --outfile=public/js/app.js --sourcemap --watch",
     "build": "esbuild src/main.ts --bundle --outfile=public/js/app.js --minify --target=es2020",
     "typecheck": "tsc --noEmit"
   },

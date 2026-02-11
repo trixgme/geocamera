@@ -18,7 +18,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   let formatted: string;
   try {
-    formatted = now.toLocaleString('ko-KR', {
+    const dtf = new Intl.DateTimeFormat('en-CA', {
       timeZone: tz,
       year: 'numeric',
       month: '2-digit',
@@ -28,11 +28,19 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       second: '2-digit',
       hour12: false,
     });
+
+    const parts = dtf.formatToParts(now);
+    const get = (type: string) =>
+      parts.find((p) => p.type === type)?.value ?? '00';
+
+    formatted = `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')}`;
   } catch {
-    formatted = now.toISOString().replace('T', ' ').slice(0, 19);
+    // Invalid timezone fallback
+    const pad = (n: number) => String(n).padStart(2, '0');
+    formatted = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
   }
 
-  res.status(200).json({
+  return res.status(200).json({
     iso: now.toISOString(),
     unix: now.getTime(),
     timezone: tz,
