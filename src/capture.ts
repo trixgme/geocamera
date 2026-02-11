@@ -20,11 +20,16 @@ export class PhotoCapture {
   }
 
   async capture(video: HTMLVideoElement): Promise<CapturedPhoto> {
-    // 1. Set canvas to video dimensions
+    // 1. 서버시간 + GPS를 먼저 확보 (실패 시 에러 throw → 촬영 차단)
+    const [serverTime, location] = await Promise.all([
+      this.fetchServerTime(),
+      this.bridge.requestLocation(),
+    ]);
+
+    // 2. 데이터 확보 후 즉시 프레임 캡처 (시간차 최소화)
     this.canvas.width = video.videoWidth;
     this.canvas.height = video.videoHeight;
 
-    // 2. Draw video frame (mirror if front camera)
     if (this.isFrontCamera()) {
       this.ctx.save();
       this.ctx.scale(-1, 1);
@@ -34,22 +39,15 @@ export class PhotoCapture {
       this.ctx.drawImage(video, 0, 0, this.canvas.width, this.canvas.height);
     }
 
-    // 3. Fetch server time and location in parallel
-    const [serverTime, location] = await Promise.all([
-      this.fetchServerTime(),
-      this.bridge.requestLocation(),
-    ]);
-
-    // 4. Render watermark
+    // 3. 워터마크 합성
     renderWatermark(this.ctx, this.canvas.width, this.canvas.height, {
       address: location.address,
       datetime: serverTime.formatted,
     });
 
-    // 5. Export as JPEG
+    // 4. JPEG 출력
     const dataUrl = this.canvas.toDataURL('image/jpeg', 0.92);
 
-    // 6. Release canvas memory
     const result: CapturedPhoto = {
       dataUrl,
       width: this.canvas.width,
@@ -64,28 +62,9 @@ export class PhotoCapture {
   }
 
   private async fetchServerTime(): Promise<ServerTime> {
-    try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const res = await fetch(`/api/time?tz=${encodeURIComponent(tz)}`);
-      if (!res.ok) throw new Error('Server time fetch failed');
-      return await res.json();
-    } catch {
-      // Fallback to device time
-      const now = new Date();
-      return {
-        iso: now.toISOString(),
-        unix: now.getTime(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        formatted: now.toLocaleString('ko-KR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false,
-        }),
-      };
-    }
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const res = await fetch(`/api/time?tz=${encodeURIComponent(tz)}`);
+    if (!res.ok) throw new Error('SERVER_TIME_FAILED');
+    return await res.json();
   }
 }

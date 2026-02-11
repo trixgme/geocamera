@@ -65,8 +65,15 @@ async function init(): Promise<void> {
     try {
       lastPhoto = await capture.capture(video);
       ui.showPreview(lastPhoto);
-    } catch {
-      ui.showError('사진 촬영에 실패했습니다.\n다시 시도해주세요.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg === 'SERVER_TIME_FAILED') {
+        ui.showError('서버 시간을 확인할 수 없습니다.\n네트워크 연결을 확인해주세요.');
+      } else if (msg === 'Location request timed out' || msg === 'LOCATION_FAILED') {
+        ui.showError('위치 정보를 가져올 수 없습니다.\n위치 권한과 네트워크를 확인해주세요.');
+      } else {
+        ui.showError('촬영에 실패했습니다.\n네트워크 연결을 확인 후 다시 시도해주세요.');
+      }
     } finally {
       ui.setLoading(false);
     }

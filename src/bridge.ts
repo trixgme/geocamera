@@ -86,13 +86,18 @@ export class GeoCameraBridge {
   }
 
   private async browserGetLocation(): Promise<GeoLocation> {
-    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 30000,
+    let position: GeolocationPosition;
+    try {
+      position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 30000,
+        });
       });
-    });
+    } catch {
+      throw new Error('LOCATION_FAILED');
+    }
 
     const { latitude, longitude } = position.coords;
     const address = await this.reverseGeocode(latitude, longitude);
