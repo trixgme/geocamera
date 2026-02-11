@@ -1,0 +1,15 @@
+{
+  "name": "geocamera",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "esbuild src/main.ts --bundle --outfile=public/js/app.js --sourcemap --watch --servedir=public",
+    "build": "esbuild src/main.ts --bundle --outfile=public/js/app.js --minify --target=es2020",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0",
+    "typescript": "^5.5.0",
+    "@vercel/node": "^3.0.0"
+  }
+}

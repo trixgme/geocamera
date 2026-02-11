@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>GeoCamera</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Camera Preview -->
+  <video id="camera-preview" autoplay playsinline muted></video>
+
+  <!-- Hidden Canvas for capture -->
+  <canvas id="capture-canvas"></canvas>
+
+  <!-- Watermark Info Bar (live preview) -->
+  <div id="info-bar">
+    <div id="info-address">
+      <span class="info-icon">&#x1F4CD;</span>
+      <span id="info-address-text">위치 확인 중...</span>
+    </div>
+    <div id="info-time">
+      <span class="info-icon">&#x1F552;</span>
+      <span id="info-time-text">시간 확인 중...</span>
+    </div>
+  </div>
+
+  <!-- Top Controls -->
+  <div id="top-bar">
+    <button id="btn-back" class="top-btn" aria-label="뒤로가기">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button id="btn-switch" class="top-btn" aria-label="카메라 전환">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"></path>
+        <path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"></path>
+        <polyline points="16 3 19 6 16 9"></polyline>
+        <polyline points="8 15 5 18 8 21"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Bottom Controls -->
+  <div id="bottom-bar">
+    <button id="btn-capture" aria-label="사진 촬영">
+      <div class="capture-ring">
+        <div class="capture-inner"></div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Photo Preview Overlay -->
+  <div id="preview-overlay" class="hidden">
+    <img id="preview-image" alt="촬영된 사진">
+    <div id="preview-actions">
+      <button id="btn-discard" class="preview-btn discard-btn">다시 촬영</button>
+      <button id="btn-save" class="preview-btn save-btn">저장</button>
+    </div>
+  </div>
+
+  <!-- Error Overlay -->
+  <div id="error-overlay" class="hidden">
+    <div class="error-content">
+      <div class="error-icon">&#x26A0;&#xFE0F;</div>
+      <p id="error-message"></p>
+      <button id="btn-retry" class="preview-btn save-btn">다시 시도</button>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div id="loading" class="hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <script src="/js/app.js" defer></script>
+</body>
+</html>
