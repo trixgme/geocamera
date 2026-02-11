@@ -100,6 +100,18 @@ async function init(): Promise<void> {
     lastPhoto = null;
   });
 
+  // 네트워크 복구 시 자동으로 에러 닫고 위치 재요청
+  window.addEventListener('online', () => {
+    ui.hideError();
+    updateInfoBar(bridge, ui);
+  });
+
+  // 네트워크 끊김 감지
+  window.addEventListener('offline', () => {
+    ui.updateAddress('네트워크 연결 없음');
+    ui.updateTime('네트워크 연결 없음');
+  });
+
   // Cleanup on page unload
   window.addEventListener('beforeunload', () => {
     clearInterval(timeInterval);
