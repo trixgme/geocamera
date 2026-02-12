@@ -137,11 +137,27 @@ export class GeoCameraBridge {
     return true;
   }
 
-  private browserSavePhoto(dataUrl: string, filename: string): boolean {
+  private async browserSavePhoto(dataUrl: string, filename: string): Promise<boolean> {
+    const blob = await (await fetch(dataUrl)).blob();
+    const file = new File([blob], filename, { type: 'image/jpeg' });
+
+    // 모바일: 공유 시트로 사진 저장 가능
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        return true;
+      } catch {
+        // 사용자 취소 시 다운로드로 fallback
+      }
+    }
+
+    // 데스크탑 또는 fallback: 파일 다운로드
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = dataUrl;
+    link.href = url;
     link.download = filename;
     link.click();
+    URL.revokeObjectURL(url);
     return true;
   }
 }
