@@ -64,7 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await fetch(urlData.upload_url, {
       method: 'POST',
       headers: { 'Content-Type': 'image/jpeg' },
-      body: buffer,
+      body: new Uint8Array(buffer),
     });
 
     // Step 3: files.completeUploadExternal
