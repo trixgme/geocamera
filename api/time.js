@@ -1,6 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -14,9 +12,9 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const now = new Date();
-  const tz = (req.query.tz as string) || 'UTC';
+  const tz = req.query.tz || 'UTC';
 
-  let formatted: string;
+  let formatted;
   try {
     const dtf = new Intl.DateTimeFormat('en-CA', {
       timeZone: tz,
@@ -28,15 +26,11 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       second: '2-digit',
       hour12: false,
     });
-
     const parts = dtf.formatToParts(now);
-    const get = (type: string) =>
-      parts.find((p) => p.type === type)?.value ?? '00';
-
+    const get = (type) => parts.find((p) => p.type === type)?.value ?? '00';
     formatted = `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')}`;
   } catch {
-    // Invalid timezone fallback
-    const pad = (n: number) => String(n).padStart(2, '0');
+    const pad = (n) => String(n).padStart(2, '0');
     formatted = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
   }
 

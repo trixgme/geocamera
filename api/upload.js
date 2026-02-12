@@ -1,6 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -20,17 +18,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Slack configuration missing' });
   }
 
-  const { image, address, datetime } = req.body as {
-    image: string;
-    address: string;
-    datetime: string;
-  };
+  const { image, address, datetime } = req.body || {};
 
   if (!image) {
     return res.status(400).json({ error: 'Image data required' });
   }
 
-  // base64 data URL → Buffer
   const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
   const buffer = Buffer.from(base64Data, 'base64');
   const filename = `geocamera_${Date.now()}.jpg`;
@@ -49,18 +42,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
 
-    const urlData = await urlRes.json() as {
-      ok: boolean;
-      upload_url: string;
-      file_id: string;
-      error?: string;
-    };
+    const urlData = await urlRes.json();
 
     if (!urlData.ok) {
       return res.status(500).json({ error: `Slack URL error: ${urlData.error}` });
     }
 
-    // Step 2: Upload file to the URL
+    // Step 2: Upload file
     await fetch(urlData.upload_url, {
       method: 'POST',
       headers: { 'Content-Type': 'image/jpeg' },
@@ -68,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     // Step 3: files.completeUploadExternal
-    const comment = `📍 ${address}\n🕐 ${datetime}`;
+    const comment = `📍 ${address || ''}\n🕐 ${datetime || ''}`;
     const completeRes = await fetch('https://slack.com/api/files.completeUploadExternal', {
       method: 'POST',
       headers: {
@@ -82,7 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
 
-    const completeData = await completeRes.json() as { ok: boolean; error?: string };
+    const completeData = await completeRes.json();
 
     if (!completeData.ok) {
       return res.status(500).json({ error: `Slack upload error: ${completeData.error}` });
@@ -91,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ok: true });
   } catch (err) {
     return res.status(500).json({
-      error: `Upload failed: ${err instanceof Error ? err.message : 'unknown'}`,
+      error: `Upload failed: ${err instanceof Error ? err.message : String(err)}`,
     });
   }
 }
