@@ -8,6 +8,9 @@
     "build": "esbuild src/main.ts --bundle --outfile=public/js/app.js --minify --target=es2020",
     "typecheck": "tsc --noEmit"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "devDependencies": {
     "esbuild": "^0.21.0",
     "typescript": "^5.5.0",
