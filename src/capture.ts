@@ -62,44 +62,23 @@ export class PhotoCapture {
   }
 
   private async fetchServerTime(): Promise<ServerTime> {
-    // 서버의 HTTP Date 헤더로 시간 확인 (서버리스 함수 불필요)
-    const res = await fetch(`/?_t=${Date.now()}`, {
-      method: 'HEAD',
-      cache: 'no-store',
-    });
+    if (!navigator.onLine) throw new Error('SERVER_TIME_FAILED');
 
-    const dateHeader = res.headers.get('date');
-    if (!dateHeader) throw new Error('SERVER_TIME_FAILED');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
-    const serverDate = new Date(dateHeader);
-    if (isNaN(serverDate.getTime())) throw new Error('SERVER_TIME_FAILED');
-
-    // Age 헤더로 캐시 보정
-    const age = res.headers.get('age');
-    if (age) {
-      serverDate.setSeconds(serverDate.getSeconds() + parseInt(age, 10));
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const res = await fetch(`/api/time?tz=${encodeURIComponent(tz)}`, {
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error('SERVER_TIME_FAILED');
+      return await res.json();
+    } catch {
+      clearTimeout(timeout);
+      throw new Error('SERVER_TIME_FAILED');
     }
-
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const dtf = new Intl.DateTimeFormat('en-CA', {
-      timeZone: tz,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hourCycle: 'h23',
-    });
-    const parts = dtf.formatToParts(serverDate);
-    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '00';
-    const formatted = `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')}`;
-
-    return {
-      iso: serverDate.toISOString(),
-      unix: serverDate.getTime(),
-      timezone: tz,
-      formatted,
-    };
   }
 }

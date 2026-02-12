@@ -92,7 +92,7 @@ export class GeoCameraBridge {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 30000,
+          maximumAge: 0, // 캐시된 위치 사용 금지
         });
       });
     } catch {
@@ -100,7 +100,13 @@ export class GeoCameraBridge {
     }
 
     const { latitude, longitude } = position.coords;
-    const address = await this.reverseGeocode(latitude, longitude);
+
+    let address: string;
+    try {
+      address = await this.reverseGeocode(latitude, longitude);
+    } catch {
+      throw new Error('LOCATION_FAILED');
+    }
 
     return {
       latitude,
@@ -111,17 +117,13 @@ export class GeoCameraBridge {
   }
 
   private async reverseGeocode(lat: number, lng: number): Promise<string> {
-    try {
-      const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=ko`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Geocode failed');
-      const data = await res.json();
-      return data.locality
-        ? `${data.countryName} ${data.principalSubdivision} ${data.city} ${data.locality}`
-        : `${data.countryName} ${data.principalSubdivision} ${data.city}`;
-    } catch {
-      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    }
+    const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=ko`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('LOCATION_FAILED');
+    const data = await res.json();
+    return data.locality
+      ? `${data.countryName} ${data.principalSubdivision} ${data.city} ${data.locality}`
+      : `${data.countryName} ${data.principalSubdivision} ${data.city}`;
   }
 
   async savePhoto(dataUrl: string, filename: string): Promise<boolean> {
