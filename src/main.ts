@@ -106,6 +106,7 @@ async function init(): Promise<void> {
           image: lastPhoto.dataUrl,
           address: document.getElementById('info-address-text')!.textContent,
           datetime: document.getElementById('info-time-text')!.textContent,
+          memo: ui.getMemo(),
         }),
       });
       if (!res.ok) throw new Error('Upload failed');

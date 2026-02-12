@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Slack configuration missing' });
   }
 
-  const { image, address, datetime } = req.body || {};
+  const { image, address, datetime, memo } = req.body || {};
 
   if (!image) {
     return res.status(400).json({ error: 'Image data required' });
@@ -56,7 +56,10 @@ export default async function handler(req, res) {
     });
 
     // Step 3: files.completeUploadExternal
-    const comment = `📍 ${address || ''}\n🕐 ${datetime || ''}`;
+    let comment = `📍 ${address || ''}\n🕐 ${datetime || ''}`;
+    if (memo) {
+      comment += `\n📝 ${memo}`;
+    }
     const completeRes = await fetch('https://slack.com/api/files.completeUploadExternal', {
       method: 'POST',
       headers: {
