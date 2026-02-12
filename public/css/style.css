@@ -209,6 +209,16 @@ html, body {
   color: #fff;
 }
 
+.slack-btn {
+  background: #4A154B;
+  color: #fff;
+}
+
+.slack-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* Error Overlay */
 #error-overlay {
   position: fixed;

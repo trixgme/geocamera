@@ -8,6 +8,7 @@ export class UI {
   private previewImage: HTMLImageElement;
   private saveBtn: HTMLButtonElement;
   private discardBtn: HTMLButtonElement;
+  private slackBtn: HTMLButtonElement;
   private errorOverlay: HTMLDivElement;
   private errorMessage: HTMLParagraphElement;
   private retryBtn: HTMLButtonElement;
@@ -19,6 +20,7 @@ export class UI {
   private switchHandler: (() => Promise<void>) | null = null;
   private saveHandler: (() => Promise<void>) | null = null;
   private discardHandler: (() => void) | null = null;
+  private slackHandler: (() => Promise<void>) | null = null;
 
   constructor() {
     this.captureBtn = document.getElementById('btn-capture') as HTMLButtonElement;
@@ -28,6 +30,7 @@ export class UI {
     this.previewImage = document.getElementById('preview-image') as HTMLImageElement;
     this.saveBtn = document.getElementById('btn-save') as HTMLButtonElement;
     this.discardBtn = document.getElementById('btn-discard') as HTMLButtonElement;
+    this.slackBtn = document.getElementById('btn-slack') as HTMLButtonElement;
     this.errorOverlay = document.getElementById('error-overlay') as HTMLDivElement;
     this.errorMessage = document.getElementById('error-message') as HTMLParagraphElement;
     this.retryBtn = document.getElementById('btn-retry') as HTMLButtonElement;
@@ -55,6 +58,10 @@ export class UI {
       if (this.discardHandler) this.discardHandler();
     });
 
+    this.slackBtn.addEventListener('click', async () => {
+      if (this.slackHandler) await this.slackHandler();
+    });
+
     this.retryBtn.addEventListener('click', () => {
       this.hideError();
     });
@@ -80,14 +87,35 @@ export class UI {
     this.discardHandler = handler;
   }
 
+  onSlack(handler: () => Promise<void>): void {
+    this.slackHandler = handler;
+  }
+
   showPreview(photo: CapturedPhoto): void {
     this.previewImage.src = photo.dataUrl;
+    this.slackBtn.disabled = false;
+    this.slackBtn.textContent = 'Slack';
     this.previewOverlay.classList.remove('hidden');
   }
 
   hidePreview(): void {
     this.previewOverlay.classList.add('hidden');
     this.previewImage.src = '';
+  }
+
+  setSlackSending(): void {
+    this.slackBtn.disabled = true;
+    this.slackBtn.textContent = '전송 중...';
+  }
+
+  setSlackDone(): void {
+    this.slackBtn.disabled = true;
+    this.slackBtn.textContent = '전송 완료';
+  }
+
+  setSlackFailed(): void {
+    this.slackBtn.disabled = false;
+    this.slackBtn.textContent = '재시도';
   }
 
   showError(message: string): void {

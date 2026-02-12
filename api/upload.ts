@@ -1,0 +1,97 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channel = process.env.SLACK_CHANNEL_ID;
+
+  if (!token || !channel) {
+    return res.status(500).json({ error: 'Slack configuration missing' });
+  }
+
+  const { image, address, datetime } = req.body as {
+    image: string;
+    address: string;
+    datetime: string;
+  };
+
+  if (!image) {
+    return res.status(400).json({ error: 'Image data required' });
+  }
+
+  // base64 data URL → Buffer
+  const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+  const buffer = Buffer.from(base64Data, 'base64');
+  const filename = `geocamera_${Date.now()}.jpg`;
+
+  try {
+    // Step 1: files.getUploadURLExternal
+    const urlRes = await fetch('https://slack.com/api/files.getUploadURLExternal', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        filename,
+        length: String(buffer.length),
+      }),
+    });
+
+    const urlData = await urlRes.json() as {
+      ok: boolean;
+      upload_url: string;
+      file_id: string;
+      error?: string;
+    };
+
+    if (!urlData.ok) {
+      return res.status(500).json({ error: `Slack URL error: ${urlData.error}` });
+    }
+
+    // Step 2: Upload file to the URL
+    await fetch(urlData.upload_url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'image/jpeg' },
+      body: buffer,
+    });
+
+    // Step 3: files.completeUploadExternal
+    const comment = `📍 ${address}\n🕐 ${datetime}`;
+    const completeRes = await fetch('https://slack.com/api/files.completeUploadExternal', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        files: [{ id: urlData.file_id, title: filename }],
+        channel_id: channel,
+        initial_comment: comment,
+      }),
+    });
+
+    const completeData = await completeRes.json() as { ok: boolean; error?: string };
+
+    if (!completeData.ok) {
+      return res.status(500).json({ error: `Slack upload error: ${completeData.error}` });
+    }
+
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({
+      error: `Upload failed: ${err instanceof Error ? err.message : 'unknown'}`,
+    });
+  }
+}

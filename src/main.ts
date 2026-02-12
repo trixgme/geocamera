@@ -95,6 +95,26 @@ async function init(): Promise<void> {
     lastPhoto = null;
   });
 
+  ui.onSlack(async () => {
+    if (!lastPhoto) return;
+    ui.setSlackSending();
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: lastPhoto.dataUrl,
+          address: document.getElementById('info-address-text')!.textContent,
+          datetime: document.getElementById('info-time-text')!.textContent,
+        }),
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      ui.setSlackDone();
+    } catch {
+      ui.setSlackFailed();
+    }
+  });
+
   ui.onDiscard(() => {
     ui.hidePreview();
     lastPhoto = null;
