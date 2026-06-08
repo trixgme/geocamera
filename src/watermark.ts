@@ -45,7 +45,7 @@ export function renderWatermark(
 function drawLogo(ctx: CanvasRenderingContext2D, canvasWidth: number): void {
   if (!logoReady || logoImage.naturalWidth === 0) return;
 
-  const logoWidth = canvasWidth * 0.2;
+  const logoWidth = canvasWidth * 0.4;
   const logoHeight = logoWidth * (logoImage.naturalHeight / logoImage.naturalWidth);
   const margin = canvasWidth * 0.035;
   const x = canvasWidth - logoWidth - margin;
