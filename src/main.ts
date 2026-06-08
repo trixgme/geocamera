@@ -42,19 +42,22 @@ async function init(): Promise<void> {
   // Pre-fetch location for info bar
   updateInfoBar(bridge, ui);
 
-  // Update time every second
+  // Update time every second (실제 워터마크와 동일한 형식 + 영어 요일)
   const timeInterval = setInterval(() => {
     const now = new Date();
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      weekday: 'short',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(now);
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
     ui.updateTime(
-      now.toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      })
+      `${get('year')}-${get('month')}-${get('day')} (${get('weekday')}) ${get('hour')}:${get('minute')}:${get('second')}`
     );
   }, 1000);
 

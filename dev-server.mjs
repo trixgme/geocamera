@@ -23,19 +23,28 @@ const server = http.createServer((req, res) => {
     const now = new Date();
 
     let formatted;
+    let weekday = '';
     try {
-      formatted = now.toLocaleString('ko-KR', {
+      const dtf = new Intl.DateTimeFormat('en-CA', {
         timeZone: tz,
+        weekday: 'short',
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false,
+        hourCycle: 'h23',
       });
+      const parts = dtf.formatToParts(now);
+      const get = (type) => parts.find((p) => p.type === type)?.value ?? '00';
+      weekday = parts.find((p) => p.type === 'weekday')?.value ?? '';
+      formatted = `${get('year')}-${get('month')}-${get('day')} (${weekday}) ${get('hour')}:${get('minute')}:${get('second')}`;
     } catch {
-      formatted = now.toISOString().replace('T', ' ').slice(0, 19);
+      const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const pad = (n) => String(n).padStart(2, '0');
+      weekday = DAYS[now.getUTCDay()];
+      formatted = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())} (${weekday}) ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
     }
 
     res.setHeader('Content-Type', 'application/json');
@@ -46,6 +55,7 @@ const server = http.createServer((req, res) => {
       unix: now.getTime(),
       timezone: tz,
       formatted,
+      weekday,
     }));
     return;
   }

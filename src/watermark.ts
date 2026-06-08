@@ -1,5 +1,13 @@
 import type { WatermarkData } from './types';
 
+// 로고를 미리 로드해두고 캡처 시점에 동기적으로 합성한다.
+const logoImage = new Image();
+let logoReady = false;
+logoImage.onload = () => {
+  logoReady = true;
+};
+logoImage.src = '/img/gme-logo.png';
+
 export function renderWatermark(
   ctx: CanvasRenderingContext2D,
   canvasWidth: number,
@@ -29,6 +37,28 @@ export function renderWatermark(
   const line2Y = canvasHeight - barHeight + barHeight * 0.7;
   const timeText = truncateText(ctx, `🕐 ${data.datetime}`, maxTextWidth);
   ctx.fillText(timeText, padding, line2Y);
+
+  // 우상단 GME 로고 워터마크
+  drawLogo(ctx, canvasWidth);
+}
+
+function drawLogo(ctx: CanvasRenderingContext2D, canvasWidth: number): void {
+  if (!logoReady || logoImage.naturalWidth === 0) return;
+
+  const logoWidth = canvasWidth * 0.2;
+  const logoHeight = logoWidth * (logoImage.naturalHeight / logoImage.naturalWidth);
+  const margin = canvasWidth * 0.035;
+  const x = canvasWidth - logoWidth - margin;
+  const y = margin;
+
+  ctx.save();
+  ctx.globalAlpha = 0.92;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  ctx.shadowBlur = canvasWidth * 0.008;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = canvasWidth * 0.003;
+  ctx.drawImage(logoImage, x, y, logoWidth, logoHeight);
+  ctx.restore();
 }
 
 function truncateText(

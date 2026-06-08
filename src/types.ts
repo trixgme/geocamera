@@ -10,6 +10,7 @@ export interface ServerTime {
   unix: number;
   timezone: string;
   formatted: string;
+  weekday: string;
 }
 
 export interface WatermarkData {

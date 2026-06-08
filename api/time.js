@@ -15,9 +15,11 @@ export default function handler(req, res) {
   const tz = req.query.tz || 'UTC';
 
   let formatted;
+  let weekday = '';
   try {
     const dtf = new Intl.DateTimeFormat('en-CA', {
       timeZone: tz,
+      weekday: 'short',
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -28,10 +30,13 @@ export default function handler(req, res) {
     });
     const parts = dtf.formatToParts(now);
     const get = (type) => parts.find((p) => p.type === type)?.value ?? '00';
-    formatted = `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')}`;
+    weekday = parts.find((p) => p.type === 'weekday')?.value ?? '';
+    formatted = `${get('year')}-${get('month')}-${get('day')} (${weekday}) ${get('hour')}:${get('minute')}:${get('second')}`;
   } catch {
+    const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const pad = (n) => String(n).padStart(2, '0');
-    formatted = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+    weekday = DAYS[now.getUTCDay()];
+    formatted = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())} (${weekday}) ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
   }
 
   return res.status(200).json({
@@ -39,5 +44,6 @@ export default function handler(req, res) {
     unix: now.getTime(),
     timezone: tz,
     formatted,
+    weekday,
   });
 }
