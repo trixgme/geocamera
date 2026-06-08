@@ -14,7 +14,6 @@ export class UI {
   private loadingEl: HTMLDivElement;
   private addressText: HTMLSpanElement;
   private timeText: HTMLSpanElement;
-  private memoInput: HTMLInputElement;
 
   private captureHandler: (() => Promise<void>) | null = null;
   private switchHandler: (() => Promise<void>) | null = null;
@@ -35,7 +34,6 @@ export class UI {
     this.loadingEl = document.getElementById('loading') as HTMLDivElement;
     this.addressText = document.getElementById('info-address-text') as HTMLSpanElement;
     this.timeText = document.getElementById('info-time-text') as HTMLSpanElement;
-    this.memoInput = document.getElementById('memo-input') as HTMLInputElement;
 
     this.bindEvents();
   }
@@ -116,13 +114,5 @@ export class UI {
 
   updateTime(time: string): void {
     this.timeText.textContent = time;
-  }
-
-  getMemo(): string {
-    return this.memoInput.value.trim();
-  }
-
-  clearMemo(): void {
-    this.memoInput.value = '';
   }
 }

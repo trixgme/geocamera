@@ -102,23 +102,6 @@ html, body {
   text-overflow: ellipsis;
 }
 
-#memo-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 2px 0;
-  outline: none;
-  font-family: inherit;
-}
-
-#memo-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
 /* Bottom Bar */
 #bottom-bar {
   position: fixed;
@@ -224,16 +207,6 @@ html, body {
 .save-btn {
   background: #007AFF;
   color: #fff;
-}
-
-.slack-btn {
-  background: #4A154B;
-  color: #fff;
-}
-
-.slack-btn:disabled {
-  opacity: 0.5;
-  pointer-events: none;
 }
 
 /* Error Overlay */
