@@ -5,3 +5,4 @@ public/js/app.js.map
 .vercel
 .DS_Store
 *.log
+.env*
